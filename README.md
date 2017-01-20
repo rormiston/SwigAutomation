@@ -49,8 +49,8 @@ If the file were a .cpp (i.e. *locatevalue.cpp*), then simply set the '-c++' fla
 $ wrap -f locatevalue -u "double LocateValue(double magic_number, int top, double precision)" -c++ True
 ```
 
-Check the directory and you should see a number of new files, including *locatvalue.py*. Now
-you can import it like any other Python module. In Ipython, I'll load the pure python function 
+Check the directory and you should see a number of new files, including *locatevalue.py*. Now
+you can import it like any other Python module. In IPython, I'll load the pure python function 
 and the newly wrapped function and compare run times. It looks something like this
 
 ```
@@ -70,7 +70,7 @@ Out[5]: 59.189189189189186
 
 ### Conclusion
 
-Our wrapped function is around 60x faster than the pure python function. SWIG
+Our wrapped function is ~60x faster than the pure python function. SWIG
 is amazing all by itself, this just adds some ease to the process through
 autogenerating the necessary documents and ensuring that your files all have
 the correct name, your function is defined in the right way and saving time
