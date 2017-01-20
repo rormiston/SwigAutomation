@@ -1,6 +1,10 @@
-#include "locatevalue.h"
+#include "locatevalue.h" // This line will be automatically added if you forget
 #include <math.h>
 
+/* Just a silly script for demonstration purposes. The function will
+try to guess 'magic_number' given the range 'top' up to the precision
+given by 'precision' by repeatedly splitting the distance to the
+magic_number in half. */
 
 double LocateValue(double magic_number, int top, double precision)
 {
