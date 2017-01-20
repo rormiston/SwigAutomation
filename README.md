@@ -26,7 +26,7 @@ When run, this script will
 
 * Make sure that SWIG is installed
 * Check that '#include file.h' is in the source file and / or add it for you
-* Create *file.i*, *file.h* and *setup.py*
+* Creates *file.i*, *file.h* and *setup.py*
 * Run swig and build the file (set to build in place)
 
 In essence, you can run everyting with just one line! Here's how it works - 
@@ -34,7 +34,7 @@ Consider the provided file *locatevalue.c* It contains a function called
 *LocateValue* and is used as
 
 ```
-"double LocateValue(double magic_number, int top, double precision)"
+double LocateValue(double magic_number, int top, double precision)
 ```
 
 Then simply cd to the directory with *locatevalue.c* and do
