@@ -1,0 +1,142 @@
+#!/usr/bin/env python
+import argparse
+import os
+from subprocess import Popen, PIPE
+
+
+# Make sure that swig is installed before continuing
+try:
+    (stdout, stderr) = Popen(["swig"], stdout=PIPE).communicate()
+except FileNotFoundError:
+    print('You do not have swig installed')
+    print('Visit the SWIG Github page here: https://github.com/swig/swig')
+
+
+def parse_command_line():
+    parser = argparse.ArgumentParser('''Read in filename,
+                                     function type and function usage''')
+    parser.add_argument('-f', '--filename', dest='filename',
+                        type=str, help='File name without extension')
+    parser.add_argument('-u', '--usage', dest='usage', type=str,
+                        help='How the function is used')
+    parser.add_argument('-c++', dest='cpp', help='If file type is .cpp',
+                        type=bool, default=False)
+    args = parser.parse_args()
+    return args
+
+
+# Unpack the command line arguments
+parser = parse_command_line()
+
+try:
+    filename = parser.filename
+except:
+    print("A file name must be given")
+
+try:
+    usage = parser.usage
+except:
+    print("The function usage must be given")
+
+cpp = parser.cpp
+
+if cpp:
+    extension = 'cpp'
+    mod_ext = 'cxx'
+else:
+    extension = 'c'
+    mod_ext = 'c'
+
+# Write the templates for the files as strings
+# Preprocessor intermediate file
+i_string = '''/* File {0}.i */
+%module {0}
+
+%{{
+#define SWIG_FILE_WITH_INIT
+#include "{0}.h"
+%}}
+
+{1};'''.format(filename, usage)
+
+# Header file
+h_string = '''/* File {0}.h */\n\n{1};'''.format(filename, usage)
+
+# Setup file
+setup_string = '''#!/usr/bin/env python
+
+"""
+setup.py file for SWIG {0}
+"""
+
+from distutils.core import setup, Extension
+
+
+{0}_module = Extension('_{0}', sources=['{0}_wrap.{1}', '{0}.{2}'])
+
+setup ( name = '{0}',
+        version = '0.1',
+        author = "Your Name Here",
+        description = """Swig wrapping for {0}""",
+        ext_modules = [{0}_module],
+        py_modules = ["{0}"],
+      )
+'''.format(filename, mod_ext, extension)
+
+# Write the contents to the correct files.
+with open(filename + '.i', 'w') as f:
+    f.write(i_string)
+
+with open(filename + '.h', 'w') as f:
+    f.write(h_string)
+
+with open('setup.py', 'w') as f:
+    f.write(setup_string)
+
+# Forgetting to include the header in the C or C++ file is really
+# easy to do and causes terrible headaches. The following will check
+# the file to make sure that the header is included. If you forgt it,
+# it will add it in for you.
+
+
+def line_prepend(filename, line):
+    if cpp:
+        filename = filename + '.cpp'
+    else:
+        filename = filename + '.c'
+
+    with open(filename, 'r+') as f:
+        content = f.read()
+        f.seek(0, 0)
+        f.write(line.rstrip('\r\n') + '\n' + content)
+
+
+def check_if_prepend(filename):
+    if cpp:
+        filename = filename + '.cpp'
+    else:
+        filename = filename + '.c'
+
+    with open(filename, 'r+') as fn:
+        lines = fn.readlines()
+        header = '#include "{}.h"'.format(filename.split('.')[0])
+        for line in lines:
+            if header in line:
+                return True
+
+
+if not check_if_prepend(filename):
+    header = '#include "{}.h"'.format(filename)
+    line_prepend(filename, header)
+
+# Now that we have the necessary files (dont forget about the actual c or
+# cpp file!) we can run setup.py and build the new python module in place.
+
+if cpp:
+    cmd1 = 'swig -c++ -python {0}.i'.format(filename)
+else:
+    cmd1 = 'swig -python {0}.i'.format(filename)
+
+cmd2 = 'python setup.py build_ext --inplace'
+os.system(cmd1)
+os.system(cmd2)
